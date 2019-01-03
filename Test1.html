@@ -1,0 +1,146 @@
+<!DOCTYPE html> <html lang="en"> 
+ 
+    <head>         
+        <meta charset="utf-8">         
+        <title>Test</title>         
+        <script type="text/javascript" src="http://d3js.org/d3.v5.js"></script>
+        <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+        <style type="text/css"> 
+            
+            body {
+                font: 10px sans-serif;
+            }
+                .axis path,
+                .axis line {
+                fill: none;
+                stroke: #000;
+                shape-rendering: crispEdges;
+            }
+
+            .bar {
+                fill: orange;
+            }
+
+            .bar:hover {
+                fill: orangered ;
+            }
+
+            .x.axis path {
+                display: none;
+            }
+
+            .d3-tip {
+                line-height: 1;
+                font-weight: bold;
+                padding: 12px;
+                background: rgba(0, 0, 0, 0.8);
+                color: #fff;
+                border-radius: 2px;
+            }
+
+            /* Creates a small triangle extender for the tooltip */
+            .d3-tip:after {
+                box-sizing: border-box;
+                display: inline;
+                font-size: 10px;
+                width: 100%;
+                line-height: 1;
+                color: rgba(0, 0, 0, 0.8);
+                content: "\25BC";
+                position: absolute;
+                text-align: center;
+            }
+
+            /* Style northward tooltips differently */
+            .d3-tip.n:after {
+                margin: -1px 0 0 0;
+                top: 100%;
+                left: 0;
+            }
+        </style>  
+    </head> 
+ 
+    <body>         
+        <script type="text/javascript">
+            
+
+            d3.dsv(",", "EPL_Set.csv", function(d) {
+                return {
+                    date: d.Date,
+                    homeTeam: d.HomeTeam,
+                    awayTeam: d.AwayTeam,
+                    fullTimeHomeGoals:d.FTHG,
+                    fullTimeAwayGoals:d.FTAG,
+                    fullTimeResult:d.FTG,
+                    halfTimeHomeGoals:d.HTHG,
+                    halfTimeAwayGoals:d.HTAG,
+                    halfTimeResult:d.HTR,
+                    season:d.Season,
+                };
+            }).then(function(data) {
+                main(data)
+            })
+
+            
+
+            function get_best_FT_teams(dataset) {
+                var score_diff_teams = {}
+                for(var i=0; i < dataset.length; i++) {
+                    var current = dataset[i];
+                    var score_diff = parseInt(current.fullTimeHomeGoals)-parseInt(current.fullTimeAwayGoals);
+                    var dictKeys = Object.keys(score_diff_teams) 
+                    if (score_diff_teams.length === 0 || !dictKeys.includes(current.homeTeam)) {
+                        score_diff_teams[current.homeTeam]=score_diff
+                    } else {
+                        score_diff_teams[current.homeTeam]+=score_diff
+                    }
+                }
+
+                var items = Object.keys(score_diff_teams).map(function(key) {
+                    return [key, score_diff_teams[key]];
+                });
+
+                items.sort(function(first, second) {
+                    return second[1] - first[1];
+                });
+
+                return items
+            }
+
+            function get_best_HT_teams(dataset) {
+                var score_diff_teams = {}
+                for(var i=0; i < dataset.length; i++) {
+                    var current = dataset[i];
+                    var ag = 0;
+                    var hg = 0;
+                    if (current.halfTimeAwayGoals != "") {ag = parseInt(current.halfTimeAwayGoals);}
+                    if (current.halfTimeHomeGoals != "") {hg = parseInt(current.halfTimeHomeGoals);}
+                    var score_diff = hg-ag;
+                    var dictKeys = Object.keys(score_diff_teams) 
+                    if (score_diff_teams.length === 0 || !dictKeys.includes(current.homeTeam)) {
+                        score_diff_teams[current.homeTeam]=score_diff
+                    } else {
+                        score_diff_teams[current.homeTeam]+=score_diff
+                    }
+                }
+
+                var items = Object.keys(score_diff_teams).map(function(key) {
+                    return [key, score_diff_teams[key]];
+                });
+
+                items.sort(function(first, second) {
+                    return second[1] - first[1];
+                });
+
+                return items
+            }
+
+            function main(dataset) {
+                var fullTimeBestTeams = get_best_FT_teams(dataset)
+                console.log(fullTimeBestTeams);
+            }
+
+        </script>     
+    </body> 
+ 
+</html>
