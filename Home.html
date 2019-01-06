@@ -21,6 +21,10 @@
                 fill: orange;
             }
 
+            .bar-chart {
+                background-color: #C7D9D9;
+            }
+
             .bar:hover {
                 fill: orangered ;
             }
@@ -57,12 +61,24 @@
                 top: 100%;
                 left: 0;
             }
+
+            div.tooltip {
+                position: absolute;
+                text-align: center;
+                width: 60px;
+                height: 28px;
+                padding: 2px;
+                font: 12px sans-serif;
+                background: lightsteelblue;
+                border: 0px;
+                border-radius: 8px;
+                pointer-events: none;
+            }
         </style>  
     </head> 
  
     <body>         
         <script type="text/javascript">
-            
 
             d3.dsv(",", "EPL_Set.csv", function(d) {
                 return {
@@ -81,7 +97,6 @@
                 main(data)
             })
 
-            
 
             function get_best_FT_teams(dataset) {
                 var score_diff_teams = {}
@@ -106,6 +121,7 @@
 
                 return items
             }
+
 
             function get_best_HT_teams(dataset) {
                 var score_diff_teams = {}
@@ -136,11 +152,95 @@
             }
 
             function main(dataset) {
-                var fullTimeBestTeams = get_best_FT_teams(dataset)
-                console.log(fullTimeBestTeams);
+
+
+                var fullTimeBestTeams = get_best_FT_teams(dataset);
+                var resultsFT = [];
+                var teamsFT = [];
+                for (var i = 0; i < fullTimeBestTeams.length; i++) {
+                    resultsFT.push(fullTimeBestTeams[i][1]);
+                    teamsFT.push(fullTimeBestTeams[i][0]);
+                }
+
+                var leftMargin = 50;  // Space to the left of first bar; accomodates y-axis labels
+                var rightMargin = 10; // Space to the right of last bar
+                var margin = {left: leftMargin, right: rightMargin, top: 10, bottom: 10};
+                var barWidth = 30;  // Width of the bars
+                var chartHeight = 1000;  // Height of chart, from x-axis (ie. y=0)
+                var chartWidth = margin.left + resultsFT.length * barWidth + margin.right;
+
+                console.log(teamsFT);
+                console.log(resultsFT);
+
+                var yScale = d3.scaleLinear()
+                    .domain([0, d3.max(resultsFT)])
+                    .range([0, chartHeight]);
+
+
+                var yAxisScale = d3.scaleLinear()
+                    .domain([d3.min(resultsFT), d3.max(resultsFT)])
+                    .range([chartHeight - yScale(d3.min(resultsFT)), 0]);
+
+                var svg = d3.select('svg');
+
+                var div = d3.select("body").append("div")
+                    .attr("class", "tooltip")
+                    .style("opacity", 0);
+
+                svg
+                    .attr('height', chartHeight + 100)
+                    .attr('width', chartWidth)
+                    .style('border', '1px solid');
+
+                svg
+                    .selectAll("rect")
+                    .data(resultsFT)
+                    .enter()
+                    .append("rect")
+                    .attr("x", function (d, i) {
+                        return margin.left + i * barWidth;
+                    })
+                    .attr("y", function (d, i) {
+                        return chartHeight - Math.max(0, yScale(d));
+                    })
+                    .attr("height", function (d) {
+                        return Math.abs(yScale(d));
+                    })
+                    .attr("width", barWidth)
+                    .on("mouseover", function(d,i) {
+                        div.transition().duration(200).style("opacity", 0.9);
+                        div	.html(teamsFT[i])
+                            .style("left", (d3.event.pageX) + "px")
+                            .style("top", (d3.event.pageY - 28) + "px");
+                    })
+
+                    .on("mouseout", function(d) {
+                        div.transition()
+                            .duration(500)
+                            .style("opacity", 0);
+                    })
+                    .style("fill", "grey")
+                    .style("stroke", "black")
+                    .style("stroke-width", "1px")
+                    .style("opacity", function (d, i) {
+                        return 1
+                        /*- (i * (1/data.length)); */
+                    });
+
+                var yAxis = d3.axisLeft(yAxisScale);
+
+                svg.append('g')
+                    .attr('transform', function (d) {
+                        return 'translate(' + margin.left + ', 0)';
+                    })
+                    .call(yAxis);
+
+
             }
 
-        </script>     
+
+        </script>
+        <svg></svg>
     </body> 
  
 </html>
