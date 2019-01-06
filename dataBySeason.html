@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Test</title>
+    <script type="text/javascript" src="http://d3js.org/d3.v5.js"></script>
+    <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+    <link rel="stylesheet" type="text/css" href="graphs.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+</head>
+
+<body>
+<span>Stat: </span>
+<select id="typeSelect" onchange="render()">
+    <option value="position">Position</option>
+    <option value="points">Points</option>
+    <option value="goalsScored">Goals Scored</option>
+    <option value="goalsConceded">Goals Conceded</option>
+    <option value="goalDifference">Goal Difference</option>
+</select>
+<button onclick="toggleAll()">Add all teams</button>
+<button onclick="toggleNone()">Remove all teams</button>
+<input type="text" id="filter" name="search" onchange="filter()">
+<button onclick="clearFilter()">Clear search</button>
+<div class="row" style="">
+    <svg class="col-md-8"></svg>
+    <div class="col-md-3" id="teamCheckbox" type="checkbox" style="height:475px;overflow-y: scroll;margin-top: 50px;">
+    </div>
+</div>
+<script type="text/javascript" src="d3-legend.js"></script>
+<script type="text/javascript" src="colors.js"></script>
+<script type="text/javascript" src="data.js"></script>
+<script type="text/javascript" src="d3-tip.js"></script>
+<script type="text/javascript" src="graphs.js"></script>
+<script type="text/javascript">
+    var dataset;
+    var teams;
+    var seasons;
+    var selectedTeams = new Set();
+    var visibleTeams;
+    var statSelect = document.getElementById("typeSelect");
+    var teamCheck = document.getElementById("teamCheckbox");
+    teamCheck.style.overflow_y = "scroll";
+    teamCheck.style.max_height = 0.8 * window.innerHeight - 100;
+    var data;
+    d3.dsv(",", "EPL_Set.csv", function (d) {
+        return {
+            date: d.Date,
+            homeTeam: d.HomeTeam,
+            awayTeam: d.AwayTeam,
+            fullTimeHomeGoals: d.FTHG,
+            fullTimeAwayGoals: d.FTAG,
+            fullTimeResult: d.FTR,
+            halfTimeHomeGoals: d.HTHG,
+            halfTimeAwayGoals: d.HTAG,
+            halfTimeResult: d.HTR,
+            season: d.Season,
+        };
+    }).then(function (data) {
+        dataset = data
+        teams = Array.from(distinct_teams(dataset)).sort();
+        visibleTeams = Array.from(distinct_teams(dataset)).sort();
+        seasons = Array.from(distinct_seasons(dataset));
+        render();
+        renderCheck();
+    })
+
+    function toggleTeam(team) {
+        if (!selectedTeams.has(team)) {
+            selectedTeams.add(team);
+        } else {
+            selectedTeams.delete(team);
+        }
+        render();
+    }
+
+    function toggleAll() {
+        teams.forEach(k => {
+            return selectedTeams.add(k);
+        });
+        render();
+        renderCheck();
+    }
+
+    function toggleNone() {
+        selectedTeams.clear();
+        render();
+        renderCheck();
+    }
+
+    function render() {
+        var st = Array.from(selectedTeams);
+        clearGraph();
+        data = statsBySeasonByTeam(dataset);
+        drawGraph(dataset, data)
+        for (var i = 0; i < st.length; i++) {
+            drawLine(dataset, data, st[i], statSelect.value);
+        }
+        ;
+    }
+
+    function renderCheck() {
+        teamCheck.innerHTML = "";
+        var check = "";
+        for (var i = 0; i < visibleTeams.length; i++) {
+            check += "<input onClick=\'toggleTeam(\"" + visibleTeams[i] + "\")\' type=\"checkbox\" name=\"" + visibleTeams[i] + "\" value=\"" + visibleTeams[i] + "\">" + visibleTeams[i] + "<br>";
+        }
+        ;
+        teamCheck.innerHTML = check;
+        for (var i=0; i< teamCheck.childNodes.length; i++) {
+            if (teamCheck.childNodes[i].nodeName == "INPUT" && selectedTeams.has(teamCheck.childNodes[i].value))
+                teamCheck.childNodes[i].checked = true
+        }
+    }
+
+    function filter() {
+        var query = document.getElementById("filter").value;
+        var results = [];
+        teams.forEach(k => {
+            if (k.toLowerCase().includes(query.toLowerCase()))
+                results.push(k);
+        })
+        visibleTeams = results;
+        renderCheck();
+    }
+
+    function clearFilter() {
+        document.getElementById("filter").value = "";
+        visibleTeams = teams;
+        renderCheck();
+    }
+
+</script>
+</body>
+
+</html>
