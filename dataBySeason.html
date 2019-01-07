@@ -140,7 +140,7 @@
         teamCheck.innerHTML = "";
         var check = "";
         for (var i = 0; i < visibleTeams.length; i++) {
-            check += "<input id=\"sel" + i + "\"class=\"\" onClick=\'toggleTeam(\"" + visibleTeams[i] + "\")\' type=\"checkbox\" name=\"" + visibleTeams[i] + "\" value=\"" + visibleTeams[i] + "\"><span for=\"sel\"" + i + "\">" + visibleTeams[i] + "</label></br>";
+            check += "<input id=\"sel" + i + "\"class=\"\" onClick=\'toggleTeam(\"" + visibleTeams[i] + "\")\' type=\"checkbox\" name=\"" + visibleTeams[i] + "\" value=\"" + visibleTeams[i] + "\"><img height=\"20\" width=\"20\" src=\"badges/"+ visibleTeams[i] +".png\"><span for=\"sel\"" + i + "\">" + visibleTeams[i] + "</label></br>";
         }
         ;
         teamCheck.innerHTML = check;

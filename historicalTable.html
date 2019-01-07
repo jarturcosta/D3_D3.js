@@ -10,7 +10,7 @@
 </head>
 <body>
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <img width="30px" height="30px" src="bpl-picture.png"></img>
+    <img width="30px" height="30px" src="bpl-picture.png">
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarColor01"
             aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
@@ -103,7 +103,10 @@
             var keys = Object.keys(tableByD[date][teams[t]])
             var row = "<tr>"
             for (var k = 0; k < keys.length; k++) {
-                row += "<td>" + tableByD[date][teams[t]][keys[k]] + "</td>"
+                if (k == 1)
+                    row += "<td><img height=\"20\" width=\"20\" src=\"badges/" + teams[t] + ".png\">" + tableByD[date][teams[t]][keys[k]] + "</td>"
+                else
+                    row += "<td>" + tableByD[date][teams[t]][keys[k]] + "</td>"
             }
             table += row + "</tr>"
         }

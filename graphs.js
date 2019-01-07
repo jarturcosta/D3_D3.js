@@ -171,8 +171,11 @@ var tip = d3.tip()
     .attr('class', 'd3-tip')
     .offset([-10, 0])
     .html(function (d) {
+        console.log("<strong>Season: </strong><span class='details'>" + d.season + "<br></span>"
+            + "<strong>Club: </strong><span class='details'><img height=\"20\" width=\"20\" src=\"badges/" + d.team + ".png>" + d.team + "<br></span>"
+            + "<strong>" + statName[statSelect.value] + ": </strong><span class='details'>" + d.y + "</span>")
         return "<strong>Season: </strong><span class='details'>" + d.season + "<br></span>"
-            + "<strong>Club: </strong><span class='details'>" + d.team + "<br></span>"
+            + "<strong>Club: </strong><img height=\"20\" width=\"20\" src=\"badges/" + d.team + ".png\"><span class='details'>" + d.team + "<br></span>"
             + "<strong>" + statName[statSelect.value] + ": </strong><span class='details'>" + d.y + "</span>";
     })
 
