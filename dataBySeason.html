@@ -7,32 +7,60 @@
     <script type="text/javascript" src="http://d3js.org/d3.v5.js"></script>
     <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
     <link rel="stylesheet" type="text/css" href="graphs.css">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="bootstrap.min.css">
 </head>
 
 <body>
-<span>Stat: </span>
-<select id="typeSelect" onchange="render()">
-    <option value="position">Position</option>
-    <option value="points">Points</option>
-    <option value="goalsScored">Goals Scored</option>
-    <option value="goalsConceded">Goals Conceded</option>
-    <option value="goalDifference">Goal Difference</option>
-    <option value="wins">Games Won</option>
-    <option value="losses">Games Lost</option>
-    <option value="draws">Games Drawn</option>
-</select>
-<button onclick="toggleAll()">Add all teams</button>
-<button onclick="toggleNone()">Remove all teams</button>
-<input type="text" id="filter" name="search" onchange="filter()">
-<button onclick="clearFilter()">Clear search</button>
-<div  style="">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <img width="30px" height="30px" src="bpl-picture.png"></img>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarColor01"
+            aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarColor01">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item active">
+                <a class="nav-link" href="dataBySeason.html">Stats by Season<span class="sr-only">(current)</span></a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="overallData.html">Overrall Data</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="historicalTable.html">Historical Table</a>
+            </li>
+        </ul>
+    </div>
+</nav>
+<div class="row" style="padding-top: 5px; padding-left:105px">
+    <select align="center" id="typeSelect" class="form-control" onchange="render()" style="width: 200px">
+        <option value="position">Table Position</option>
+        <option value="points">Points</option>
+        <option value="goalsScored">Goals Scored</option>
+        <option value="goalsConceded">Goals Conceded</option>
+        <option value="goalDifference">Goal Difference</option>
+        <option value="wins">Games Won</option>
+        <option value="losses">Games Lost</option>
+        <option value="draws">Games Drawn</option>
+    </select>
+
+    <button align="center" onclick="toggleAll()" class="btn" style="margin-left:50px">Add all teams</button>
+    <button align="center" onclick="toggleNone()" class="btn">Remove all teams</button>
+    <input align="center" type="text" id="filter" name="search" onchange="filter()" class="form-control"
+           style="width: 200px" placeholder="Filter">
+    <button align="center" onclick="clearFilter()" class="btn">Clear search</button>
+
+</div>
+<div style="" class="row">
     <svg class="col-md-8"></svg>
-    <div class="col-md-2" id="teamCheckbox" type="checkbox" style="height:475px;overflow-y: scroll;margin-top: 50px;margin-left: 50px;">
+    <div class="col-md-3" id="teamCheckbox"
+         style="height:500px;overflow-y: scroll;padding-left: 50px;margin-left: 50px;">
     </div>
 </div>
 <div align="center">
-    <div><div id="slider-range"></div></div>
+    <div>
+        <div id="slider-range"></div>
+    </div>
 </div>
 <script type="text/javascript" src="d3-simple-slider.js"></script>
 <script type="text/javascript" src="colors.js"></script>
@@ -50,6 +78,7 @@
     var teamCheck = document.getElementById("teamCheckbox");
     teamCheck.style.overflow_y = "scroll";
     teamCheck.style.max_height = 0.8 * window.innerHeight - 100;
+    teamCheck.style.width = 0.2 * window.innerWidth - 100;
     var data;
     d3.dsv(",", "EPL_Set.csv", function (d) {
         return {
@@ -111,11 +140,11 @@
         teamCheck.innerHTML = "";
         var check = "";
         for (var i = 0; i < visibleTeams.length; i++) {
-            check += "<input onClick=\'toggleTeam(\"" + visibleTeams[i] + "\")\' type=\"checkbox\" name=\"" + visibleTeams[i] + "\" value=\"" + visibleTeams[i] + "\">" + visibleTeams[i] + "<br>";
+            check += "<input id=\"sel" + i + "\"class=\"\" onClick=\'toggleTeam(\"" + visibleTeams[i] + "\")\' type=\"checkbox\" name=\"" + visibleTeams[i] + "\" value=\"" + visibleTeams[i] + "\"><span for=\"sel\"" + i + "\">" + visibleTeams[i] + "</label></br>";
         }
         ;
         teamCheck.innerHTML = check;
-        for (var i=0; i< teamCheck.childNodes.length; i++) {
+        for (var i = 0; i < teamCheck.childNodes.length; i++) {
             if (teamCheck.childNodes[i].nodeName == "INPUT" && selectedTeams.has(teamCheck.childNodes[i].value))
                 teamCheck.childNodes[i].checked = true
         }
@@ -139,13 +168,5 @@
     }
 
 </script>
-
-<div class="navbar">
-    <a href="dataBySeason.html" class="active">Data by season</a>
-    <a href="overallData.html">Overall stats</a>
-    <a href="#contact">Contact</a>
-</div>
-
 </body>
-
 </html>

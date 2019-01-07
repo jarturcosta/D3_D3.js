@@ -106,7 +106,6 @@ function tableByDate(input_data) {
     var currentSeason = "";
     var currentTable = {};
     for (var i = 0; i < input_data.length; i++) {
-        //console.log(currentTable, i);
         if (currentSeason != input_data[i].season) {
             currentTable = {}
             for (var t = 0; t < teamsByS[input_data[i].season].length; t++) {
@@ -122,7 +121,6 @@ function tableByDate(input_data) {
                     goalsConceded: 0,
                     goalDifference: 0
                 };
-                console.log(currentTable[teamsByS[input_data[i].season][t]]);
             }
         }
         ;
