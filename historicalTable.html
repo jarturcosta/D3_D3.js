@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script type="text/javascript" src="http://d3js.org/d3.v5.js"></script>
+    <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+    <link rel="stylesheet" type="text/css" href="graphs.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+</head>
+<body>
+<input type="date" id="date" onchange="drawTable()">
+<table id="table" class="table" align="center">
+    <thead>
+    <tr>
+        <th scope="col">Position</th>
+        <th scope="col">Team</th>
+        <th scope="col">Games Played</th>
+        <th scope="col">Points</th>
+        <th scope="col">Wins</th>
+        <th scope="col">Draws</th>
+        <th scope="col">Losses</th>
+        <th scope="col">Goals Scored</th>
+        <th scope="col">Goals Conceded</th>
+        <th scope="col">Goal Difference</th>
+    </tr>
+    </thead>
+    <tbody id="tbody">
+
+    </tbody>
+</table>
+</body>
+<script type="text/javascript" src="data.js"></script>
+<script>
+    var dataset;
+    var tableByD;
+    d3.dsv(",", "EPL_Set.csv", function (d) {
+        return {
+            date: d.Date,
+            homeTeam: d.HomeTeam,
+            awayTeam: d.AwayTeam,
+            fullTimeHomeGoals: d.FTHG,
+            fullTimeAwayGoals: d.FTAG,
+            fullTimeResult: d.FTR,
+            halfTimeHomeGoals: d.HTHG,
+            halfTimeAwayGoals: d.HTAG,
+            halfTimeResult: d.HTR,
+            season: d.Season,
+        };
+    }).then(function (data) {
+        dataset = data
+        tableByD = tableByDate(dataset);
+        console.log(tableByD)
+        draw()
+    })
+
+    function draw() {
+        var date = dataset[0].date.split("/")[2] > 30 ? 19 : 20
+        date += dataset[0].date.split("/")[2] + "-" + dataset[0].date.split("/")[1] + "-" + dataset[0].date.split("/")[0]
+        document.getElementById("date").min = date
+        date = dataset[dataset.length - 1].date.split("/")[2] > 30 ? 19 : 20
+        date += dataset[dataset.length - 1].date.split("/")[2] + "-" + dataset[dataset.length - 1].date.split("/")[1] + "-" + dataset[dataset.length - 1].date.split("/")[0]
+        document.getElementById("date").max = date
+        document.getElementById("date").value = date
+        drawTable();
+    }
+
+    function drawTable() {
+        var table = ""
+        document.getElementById("tbody").innerHTML = ""
+        var date = document.getElementById("date").value
+        console.log(date)
+
+        var teams = Object.keys(tableByD[date]).sort(function (first, second) {
+            return tableByD[date][first].position - tableByD[date][second].position;
+        });
+        for (var t = 0; t < teams.length; t++) {
+            var keys = Object.keys(tableByD[date][teams[t]])
+            var row = "<tr>"
+            for (var k = 0; k < keys.length; k++) {
+                row += "<td>" + tableByD[date][teams[t]][keys[k]] + "</td>"
+            }
+            table += row + "</tr>"
+        }
+        document.getElementById("tbody").innerHTML = table;
+    }
+
+</script>
+</html>
