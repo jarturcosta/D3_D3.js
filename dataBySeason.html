@@ -11,6 +11,14 @@
 </head>
 
 <body>
+
+
+<div class="navbar">
+    <a href="dataBySeason.html" class="active">Data by season</a>
+    <a href="overallData.html">Overall stats</a>
+    <a href="#contact">Contact</a>
+</div>
+
 <span>Stat: </span>
 <select id="typeSelect" onchange="render()">
     <option value="position">Position</option>
@@ -100,6 +108,7 @@
         var st = Array.from(selectedTeams);
         clearGraph();
         data = statsBySeasonByTeam(dataset);
+        console.log(data);
         drawGraph(dataset, data)
         for (var i = 0; i < st.length; i++) {
             drawLine(dataset, data, st[i], statSelect.value);
@@ -140,11 +149,6 @@
 
 </script>
 
-<div class="navbar">
-    <a href="dataBySeason.html" class="active">Data by season</a>
-    <a href="overallData.html">Overall stats</a>
-    <a href="#contact">Contact</a>
-</div>
 
 </body>
 

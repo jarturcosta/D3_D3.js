@@ -29,6 +29,15 @@
     stroke-linejoin: round;
 }
 
+.arc text {
+    font: 10px sans-serif;
+    text-anchor: middle;
+}
+
+.arc path {
+    stroke: #fff;
+}
+
 /* Tooltip CSS */
 .d3-tip {
     line-height: 1.5;
