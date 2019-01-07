@@ -1,447 +1,388 @@
-<!DOCTYPE html> <html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 
-    <head>
-        <meta charset="utf-8">
-        <title>Test</title>
-        <script type="text/javascript" src="http://d3js.org/d3.v5.js"></script>
-        <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
-        <link rel="stylesheet" type="text/css" href="graphs.css">
-        <link rel="stylesheet" href="bootstrap.min.css">
-        <style type="text/css">
+<head>
+    <meta charset="utf-8">
+    <title>Test</title>
+    <script type="text/javascript" src="http://d3js.org/d3.v5.js"></script>
+    <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+    <script src="d3-tip.js"></script>
+    <link rel="stylesheet" type="text/css" href="graphs.css">
+    <link rel="stylesheet" href="bootstrap.min.css">
+    <style type="text/css">
+        .bar--negative {
+            fill: #CF142B;
+        }
+
+        .bar--positive {
+            fill: #00247D;
+        }
+
+    </style>
+    <script type="text/javascript" src="data.js"></script>
+    <script type="text/javascript" src="colors.js"></script>
+
+</head>
+
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <img width="30px" height="30px" src="bpl-picture.png"></img>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarColor01"
+            aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarColor01">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item ">
+                <a class="nav-link" href="dataBySeason.html">Stats by Season<span class="sr-only">(current)</span></a>
+            </li>
+            <li class="nav-item active">
+                <a class="nav-link" href="overallData.html">Overrall Data</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="historicalTable.html">Historical Table</a>
+            </li>
+        </ul>
+    </div>
+</nav>
+<select id="typeSelect" class="form-control" onchange="render()" style="margin:5px; width:950px">
+    <option value="goal_diff">Goal difference</option>
+    <option value="league_wins">League Titles</option>
+    <option value="goalsScored">Goals scored</option>
+    <option value="goalsConceded">Goals conceded</option>
+    <option value="wins">Games won</option>
+    <option value="losses">Games lost</option>
+    <option value="draws">Games drawn</option>
+    <option value="points">Total points</option>
+
+</select>
+<svg></svg>
+<script type="text/javascript">
+    var statName = {
+        "league_wins": "League Titles",
+        "points": "Points",
+        "goalsScored": "Goals Scored",
+        "goalsConceded": "Goals Conceded",
+        "goal_diff": "Goal Difference",
+        "wins": "Games Won",
+        "losses": "Games Lost",
+        "draws": "Games Drawn",
+    }
+    var statSelect = document.getElementById("typeSelect");
+    var dataset;
+    var resultsFT;
+    var tip = d3.tip()
+        .attr('class', 'd3-tip')
+        .offset([-10, 0])
+        .html(function (d) {
+            console.log(d)
+            var out = "<strong>Club: </strong><img height=\"20\" width=\"20\" src=\"badges/" + d[1] + ".png\"><span class='details'>" + d[1] + "<br></span>"
+                + "<strong>" + statName[statSelect.value] + ": </strong><span class='details'>";
+            if (d[2] == "pie")
+                out += d[0].data + "</span>"
+            else if (d[2] == "diff")
+                out += d[0] + "</span>"
+            else
+                out += resultsFT[d[0]] + "</span>"
+            return out;
+        })
 
 
-                .axis path,
-                .axis line {
-                fill: none;
-                stroke: #000;
-                shape-rendering: crispEdges;
+    d3.dsv(",", "EPL_Set.csv", function (d) {
+        return {
+            date: d.Date,
+            homeTeam: d.HomeTeam,
+            awayTeam: d.AwayTeam,
+            fullTimeHomeGoals: d.FTHG,
+            fullTimeAwayGoals: d.FTAG,
+            fullTimeResult: d.FTR,
+            halfTimeHomeGoals: d.HTHG,
+            halfTimeAwayGoals: d.HTAG,
+            halfTimeResult: d.HTR,
+            season: d.Season,
+        };
+    }).then(function (data) {
+        dataset = data
+        render();
+    });
+
+    function get_best_FT_teams(dataset) {
+        var score_diff_teams = {};
+        for (var i = 0; i < dataset.length; i++) {
+            var current = dataset[i];
+            var score_diff = parseInt(current.fullTimeHomeGoals) - parseInt(current.fullTimeAwayGoals);
+            var dictKeys = Object.keys(score_diff_teams)
+            if (score_diff_teams.length === 0 || !dictKeys.includes(current.homeTeam)) {
+                score_diff_teams[current.homeTeam] = score_diff
+            } else {
+                score_diff_teams[current.homeTeam] += score_diff
             }
+        }
 
-            .bar {
-                fill: orange;
+        var items = Object.keys(score_diff_teams).map(function (key) {
+            return [key, score_diff_teams[key]];
+        });
+
+        items.sort(function (first, second) {
+            return second[1] - first[1];
+        });
+
+        return items
+    }
+
+    function get_major_stats(dataset, key) {
+        var season_data = statsBySeasonByTeam(dataset);
+        var retrieved_data = {};
+        for (var season_key in season_data) {
+            var current_season = season_data[season_key];
+            for (var team_key in current_season) {
+                var current_team = current_season[team_key];
+                var dictKeys = Object.keys(retrieved_data);
+                if (!dictKeys.includes(team_key)) {
+                    retrieved_data[team_key] = current_team[key];
+                } else {
+                    retrieved_data[team_key] += current_team[key];
+                }
+
+
             }
+        }
+        var items = Object.keys(retrieved_data).map(function (key) {
+            return [key, retrieved_data[key]];
+        });
 
-            .bar-chart {
-                background-color: #C7D9D9;
+        items.sort(function (first, second) {
+            return second[1] - first[1];
+        });
+
+        return items;
+    }
+
+
+    function clearGraph() {
+        d3.select("svg").selectAll("*").remove();
+        d3.select("svg").call(tip);
+    }
+
+    function get_league_wins(dataset) {
+        var season_data = statsBySeasonByTeam(dataset);
+        var league_winners = {};
+        for (var season_key in season_data) {
+            var current_season = season_data[season_key];
+            for (var team_key in current_season) {
+                var current_team = current_season[team_key];
+                var dictKeys = Object.keys(league_winners);
+                if (current_team.position == 1) {
+                    if (!dictKeys.includes(team_key)) {
+                        league_winners[team_key] = 1;
+                    } else {
+                        league_winners[team_key] += 1;
+                    }
+                }
             }
-
-            .bar--negative:hover {
-                fill: orangered;
-            }
+        }
 
 
-            .bar--positive:hover {
-                fill: steelblue;
-            }
+        var items = Object.keys(league_winners).map(function (key) {
+            return [key, league_winners[key]];
+        });
 
-            .x.axis path {
-                display: none;
-            }
+        items.sort(function (first, second) {
+            return second[1] - first[1];
+        });
 
-            .d3-tip {
-                line-height: 1;
-                font-weight: bold;
-                padding: 12px;
-                background: rgba(0, 0, 0, 0.8);
-                color: #fff;
-                border-radius: 2px;
-            }
+        return items;
 
-            /* Creates a small triangle extender for the tooltip */
-            .d3-tip:after {
-                box-sizing: border-box;
-                display: inline;
-                font-size: 10px;
-                width: 100%;
-                line-height: 1;
-                color: rgba(0, 0, 0, 0.8);
-                content: "\25BC";
-                position: absolute;
-                text-align: center;
-            }
+    }
 
-            /* Style northward tooltips differently */
-            .d3-tip.n:after {
-                margin: -1px 0 0 0;
-                top: 100%;
-                left: 0;
-            }
+    function render() {
+        clearGraph();
+        switch (statSelect.value) {
+            case "league_wins":
+                draw_pie_chart(dataset);
+                break;
 
-            div.tooltip {
-                position: absolute;
-                text-align: center;
-                width: 60px;
-                height: 28px;
-                padding: 2px;
-                font: 12px sans-serif;
-                background: lightsteelblue;
-                border: 0px;
-                border-radius: 8px;
-                pointer-events: none;
-            }
+            default:
+                draw_bar_chart(dataset, statSelect.value);
+                break;
+        }
+    }
 
-            .bar--negative {
-                fill: #CF142B;
-            }
+    function draw_pie_chart(dataset, stat) {
 
-            .bar--positive {
-                fill: #00247D;
-            }
+        var data = get_league_wins(dataset);
 
-        </style>
-        <script type="text/javascript" src="data.js"></script>
-        <script type="text/javascript" src="colors.js"></script>
+        resultsFT = [];
+        var teamsFT = [];
+        for (var i = 0; i < data.length; i++) {
+            resultsFT.push(data[i][1]);
+            teamsFT.push(data[i][0]);
+        }
+
+        var width = 960,
+            height = 500,
+            radius = Math.min(width, height) / 2;
 
 
+        var arc = d3.arc()
+            .outerRadius(radius - 10)
+            .innerRadius(0)
+        ;
 
-    </head>
+        var labelArc = d3.arc()
+            .outerRadius(radius - 40)
+            .innerRadius(radius - 50)
 
-    <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <img width="30px" height="30px" src="bpl-picture.png"></img>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarColor01"
-                aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-
-        <div class="collapse navbar-collapse" id="navbarColor01">
-            <ul class="navbar-nav mr-auto">
-                <li class="nav-item ">
-                    <a class="nav-link" href="dataBySeason.html">Stats by Season<span class="sr-only">(current)</span></a>
-                </li>
-                <li class="nav-item active">
-                    <a class="nav-link" href="overallData.html">Overrall Data</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="historicalTable.html">Historical Table</a>
-                </li>
-            </ul>
-        </div>
-    </nav>
-        <span>Stat: </span>
-        <select id="typeSelect" onchange="render()">
-            <option value="goal_diff">Goal difference</option>
-            <option value="league_wins">League wins</option>
-            <option value="goalsScored">Goals scored</option>
-            <option value="goalsConceded">Goals conceded</option>
-            <option value="wins">Games won</option>
-            <option value="losses">Games lost</option>
-            <option value="draws">Games drawn</option>
-            <option value="points">Total points</option>
-
-        </select>
-        <input type="text" id="filter" name="search" onchange="filter()">
-        <button onclick="clearFilter()">Clear search</button>
-
-        <svg></svg>
-        <script type="text/javascript">
-            var statSelect = document.getElementById("typeSelect");
-            var dataset;
-            d3.dsv(",", "EPL_Set.csv", function(d) {
-                return {
-                    date: d.Date,
-                    homeTeam: d.HomeTeam,
-                    awayTeam: d.AwayTeam,
-                    fullTimeHomeGoals:d.FTHG,
-                    fullTimeAwayGoals:d.FTAG,
-                    fullTimeResult:d.FTR,
-                    halfTimeHomeGoals:d.HTHG,
-                    halfTimeAwayGoals:d.HTAG,
-                    halfTimeResult:d.HTR,
-                    season:d.Season,
-                };
-            }).then(function(data) {
-                dataset = data
-                render();
+        var pie = d3.pie()
+            .sort(null)
+            .value(function (d) {
+                return d;
             });
 
-            function get_best_FT_teams(dataset) {
-                var score_diff_teams = {};
-                for(var i=0; i < dataset.length; i++) {
-                    var current = dataset[i];
-                    var score_diff = parseInt(current.fullTimeHomeGoals)-parseInt(current.fullTimeAwayGoals);
-                    var dictKeys = Object.keys(score_diff_teams)
-                    if (score_diff_teams.length === 0 || !dictKeys.includes(current.homeTeam)) {
-                        score_diff_teams[current.homeTeam]=score_diff
-                    } else {
-                        score_diff_teams[current.homeTeam]+=score_diff
-                    }
-                }
+        var svg = d3.select("svg")
+            .attr("width", width)
+            .attr("height", height)
+            .append("g")
+            .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
 
-                var items = Object.keys(score_diff_teams).map(function(key) {
-                    return [key, score_diff_teams[key]];
+        var g = svg.selectAll(".arc")
+            .data(pie(resultsFT))
+            .enter().append("g")
+            .attr("class", "arc")
+            .on("mouseover", function (a, b, c) {
+                console.log(a,b,c)
+                c[b].classList.remove('dot')
+                c[b].classList.add('focus')
+                tip.show([a, teamsFT[b], "pie"])
+            })
+
+            .on("mouseout", function (a, b, c) {
+                tip.hide([a, teamsFT[b], "pie"])
+                c[b].classList.add('dot')
+                c[b].classList.remove('focus')
+            });
+
+        g.append("path")
+            .attr("d", arc)
+            .style("fill", function (d, i) {
+                return COLORS[teamsFT[i]];
+            });
+
+        g.append("text")
+            .attr("transform", function (d) {
+                return "translate(" + labelArc.centroid(d) + ")";
+            })
+            .text(function (d, i) {
+                return teamsFT[i];
+            });
+
+
+    }
+
+    function draw_bar_chart(dataset, stat) {
+
+        var leftMargin = 50;  // Space to the left of first bar; accomodates y-axis labels
+        var rightMargin = 10; // Space to the right of last bar
+        var margin = {left: leftMargin, right: rightMargin, top: 10, bottom: 0};
+        var barWidth = 20;  // Width of the bars
+        var chartHeight = 450;  // Height of chart, from x-axis (ie. y=0)
+        //var chartWidth = margin.left + resultsFT.length * barWidth + margin.right;
+        var chartWidth = 1200;
+        var data;
+        if (stat == "goal_diff") {
+            data = get_best_FT_teams(dataset);
+        } else {
+            data = get_major_stats(dataset, stat);
+        }
+
+        resultsFT = [];
+        var teamsFT = [];
+        for (var i = 0; i < data.length; i++) {
+            resultsFT.push(data[i][1]);
+            teamsFT.push(data[i][0]);
+        }
+
+
+        var yScale = d3.scaleLinear()
+            .domain([0, d3.max(resultsFT) + 5])
+            .range([0, chartHeight + 10]);
+
+
+        var yAxisScale = d3.scaleLinear()
+            .domain([d3.min(resultsFT), d3.max(resultsFT) + 2])
+            .range([chartHeight - yScale(d3.min(resultsFT)), 0]);
+
+
+        var svg = d3.select('svg');
+
+        var div = d3.select("body").append("div")
+            .attr("class", "d3-tip")
+            .style("opacity", 0);
+
+        svg
+            .attr('height', chartHeight + 50)
+            .attr('width', chartWidth)
+            .style('margin-top', 20);
+
+        svg
+            .selectAll("rect")
+            .data(resultsFT)
+            .enter()
+            .append("rect")
+            .attr("x", function (d, i) {
+                return margin.left + i * barWidth;
+            })
+            .attr("y", function (d, i) {
+                return chartHeight - Math.max(0, yScale(d));
+            })
+            .attr("height", function (d) {
+                return Math.abs(yScale(d));
+            })
+            .attr("width", barWidth - 3)
+            .on("mouseover", function (a, b, c) {
+                console.log(a, b, c)
+                c[b].classList.remove('dot')
+                c[b].classList.add('focus')
+                tip.show([stat =="goal_diff" ? a : b, teamsFT[b], stat =="goal_diff" ? "diff" :""])
+            })
+
+            .on("mouseout", function (a, b, c) {
+                tip.hide([a, teamsFT[b], ""])
+                c[b].classList.add('dot')
+                c[b].classList.remove('focus')
+            })
+            .attr("class", function (d, i) {
+                return "bar bar--" + (resultsFT[i] < 0 ? "negative" : "positive");
+            })
+            .style("stroke", "black")
+            .style("stroke-width", "1px")
+            .style("opacity", function (d, i) {
+                return 1
+            });
+
+        if (stat != "goal_diff") {
+            svg.selectAll("rect")
+                .data(teamsFT)
+                .style("fill", function (d) {
+                    return COLORS[d];
                 });
+        }
 
-                items.sort(function(first, second) {
-                    return second[1] - first[1];
-                });
+        var yAxis = d3.axisLeft(yAxisScale);
 
-                return items
-            }
-
-            function get_major_stats(dataset,key) {
-                var season_data = statsBySeasonByTeam(dataset);
-                var retrieved_data = {};
-                for (var season_key in season_data) {
-                    var current_season = season_data[season_key];
-                    for (var team_key in current_season) {
-                        var current_team = current_season[team_key];
-                        var dictKeys = Object.keys(retrieved_data);
-                        if (!dictKeys.includes(team_key)) {
-                            retrieved_data[team_key] = current_team[key];
-                        } else {
-                            retrieved_data[team_key] += current_team[key];
-                        }
+        svg.append('g')
+            .attr('transform', function (d) {
+                return 'translate(' + margin.left + ', 0)';
+            })
+            .call(yAxis);
 
 
-                    }
-                }
-                var items = Object.keys(retrieved_data).map(function (key) {
-                    return [key, retrieved_data[key]];
-                });
-
-                items.sort(function (first, second) {
-                    return second[1] - first[1];
-                });
-
-                return items;
-            }
+    }
 
 
-                    function clearGraph() {
-                        d3.select("svg").selectAll("*").remove();
-                    }
+</script>
 
-                    function get_league_wins(dataset) {
-                        var season_data = statsBySeasonByTeam(dataset);
-                        var league_winners = {};
-                        for (var season_key in season_data) {
-                            var current_season = season_data[season_key];
-                            for (var team_key in current_season) {
-                                var current_team = current_season[team_key];
-                                var dictKeys = Object.keys(league_winners);
-                                if (current_team.position == 1) {
-                                    if (!dictKeys.includes(team_key)) {
-                                        league_winners[team_key] = 1;
-                                    } else {
-                                        league_winners[team_key] += 1;
-                                    }
-                                }
-                            }
-                        }
-
-
-
-                        var items = Object.keys(league_winners).map(function (key) {
-                            return [key, league_winners[key]];
-                        });
-
-                        items.sort(function (first, second) {
-                            return second[1] - first[1];
-                        });
-
-                        return items;
-
-                    }
-
-                    function render() {
-                        clearGraph();
-                        switch (statSelect.value) {
-                            case "league_wins":
-                                draw_pie_chart(dataset);
-                                break;
-
-                            default:
-                                draw_bar_chart(dataset, statSelect.value);
-                                break;
-                        }
-                    }
-
-                    function draw_pie_chart(dataset, stat) {
-
-                        var data = get_league_wins(dataset);
-
-                        var resultsFT = [];
-                        var teamsFT = [];
-                        for (var i = 0; i < data.length; i++) {
-                            resultsFT.push(data[i][1]);
-                            teamsFT.push(data[i][0]);
-                        }
-
-                        var width = 960,
-                            height = 500,
-                            radius = Math.min(width, height) / 2;
-
-                        var color = d3.scaleOrdinal()
-                            .range(["#3366cc", "#dc3912", "#ff9900", "#109618", "#990099", "#0099c6", "#dd4477", "#66aa00",
-                                "#b82e2e", "#316395", "#994499", "#22aa99", "#aaaa11", "#6633cc", "#e67300", "#8b0707",
-                                "#651067", "#329262", "#5574a6", "#3b3eac"]);
-
-                        var arc = d3.arc()
-                            .outerRadius(radius - 10)
-                            .innerRadius(0)
-                        ;
-
-                        var labelArc = d3.arc()
-                            .outerRadius(radius - 40)
-                            .innerRadius(radius - 50)
-
-                        var pie = d3.pie()
-                            .sort(null)
-                            .value(function (d) {
-                                return d;
-                            });
-
-                        var div = d3.select("body").append("div")
-                            .attr("class", "tooltip")
-                            .style("opacity", 0);
-
-                        var svg = d3.select("svg")
-                            .attr("width", width)
-                            .attr("height", height)
-                            .append("g")
-                            .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
-
-
-                        var g = svg.selectAll(".arc")
-                            .data(pie(resultsFT))
-                            .enter().append("g")
-                            .attr("class", "arc")
-                            .on("mouseover", function (d, i) {
-                                div.transition().duration(200).style("opacity", 0.9);
-                                div.html(teamsFT[i] + "<br />" + resultsFT[i])
-                                    .style("left", (d3.event.pageX) + "px")
-                                    .style("top", (d3.event.pageY - 28) + "px");
-                            })
-
-                            .on("mouseout", function (d) {
-                                div.transition()
-                                    .duration(500)
-                                    .style("opacity", 0);
-                            });
-
-                        g.append("path")
-                            .attr("d", arc)
-                            .style("fill", function (d) {
-                                return color(d.data);
-                            });
-
-                        g.append("text")
-                            .attr("transform", function (d) {
-                                return "translate(" + labelArc.centroid(d) + ")";
-                            })
-                            .text(function (d, i) {
-                                return teamsFT[i];
-                            });
-
-
-                    }
-
-                    function draw_bar_chart(dataset, stat) {
-
-                        var leftMargin = 50;  // Space to the left of first bar; accomodates y-axis labels
-                        var rightMargin = 10; // Space to the right of last bar
-                        var margin = {left: leftMargin, right: rightMargin, top: 10, bottom: 0};
-                        var barWidth = 20;  // Width of the bars
-                        var chartHeight = 450;  // Height of chart, from x-axis (ie. y=0)
-                        //var chartWidth = margin.left + resultsFT.length * barWidth + margin.right;
-                        var chartWidth = 1200;
-                        var data;
-                        if(stat == "goal_diff") {
-                            data = get_best_FT_teams(dataset);
-                        } else {
-                            data = get_major_stats(dataset, stat);
-                        }
-                        console.log(data);
-
-                        var resultsFT = [];
-                        var teamsFT = [];
-                        for (var i = 0; i < data.length; i++) {
-                            resultsFT.push(data[i][1]);
-                            teamsFT.push(data[i][0]);
-                        }
-
-
-                        var yScale = d3.scaleLinear()
-                            .domain([0, d3.max(resultsFT) + 5])
-                            .range([0, chartHeight + 10]);
-
-
-                        var yAxisScale = d3.scaleLinear()
-                            .domain([d3.min(resultsFT), d3.max(resultsFT) + 2])
-                            .range([chartHeight - yScale(d3.min(resultsFT)), 0]);
-
-
-                        var svg = d3.select('svg');
-
-                        var div = d3.select("body").append("div")
-                            .attr("class", "tooltip")
-                            .style("opacity", 0);
-
-                        svg
-                            .attr('height', chartHeight + 50)
-                            .attr('width', chartWidth)
-                            .style('margin-top', 20);
-
-                        svg
-                            .selectAll("rect")
-                            .data(resultsFT)
-                            .enter()
-                            .append("rect")
-                            .attr("x", function (d, i) {
-                                return margin.left + i * barWidth;
-                            })
-                            .attr("y", function (d, i) {
-                                return chartHeight - Math.max(0, yScale(d));
-                            })
-                            .attr("height", function (d) {
-                                return Math.abs(yScale(d));
-                            })
-                            .attr("width", barWidth - 3)
-                            .on("mouseover", function (d, i) {
-                                div.transition().duration(200).style("opacity", 0.9);
-                                div.html(teamsFT[i] + "<br />" + resultsFT[i])
-                                    .style("left", (d3.event.pageX) + "px")
-                                    .style("top", (d3.event.pageY - 28) + "px");
-                            })
-
-                            .on("mouseout", function (d) {
-                                div.transition()
-                                    .duration(500)
-                                    .style("opacity", 0);
-                            })
-                            .attr("class", function (d, i) {
-                                return "bar bar--" + (resultsFT[i] < 0 ? "negative" : "positive");
-                            })
-                            .style("stroke", "black")
-                            .style("stroke-width", "1px")
-                            .style("opacity", function (d, i) {
-                                return 1
-                            });
-
-                        if(stat != "goal_diff") {
-                            svg.selectAll("rect")
-                                .data(teamsFT)
-                                .style("fill", function(d) {
-                                    return COLORS[d];
-                                });
-                        }
-
-                        var yAxis = d3.axisLeft(yAxisScale);
-
-                        svg.append('g')
-                            .attr('transform', function (d) {
-                                return 'translate(' + margin.left + ', 0)';
-                            })
-                            .call(yAxis);
-
-
-                    }
-
-
-
-        </script>
-
-    </body>
+</body>
 
 </html>
