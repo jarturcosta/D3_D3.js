@@ -95,3 +95,36 @@
 .details {
     color: white;
 }
+
+.navbar {
+    overflow: hidden;
+    background-color: gray;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+}
+
+.navbar a {
+    float: left;
+    display: block;
+    color: #f2f2f2;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+    font-size: 17px;
+}
+
+.navbar a:hover {
+    background: #f1f1f1;
+    color: gray;
+}
+
+.navbar a.active {
+    background-color: darkblue;
+    color: white;
+}
+
+.main {
+    padding: 16px;
+    margin-bottom: 4px;
+}
