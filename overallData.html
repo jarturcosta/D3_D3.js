@@ -322,8 +322,8 @@
 
                         g.append("path")
                             .attr("d", arc)
-                            .style("fill", function (d) {
-                                return color(d.data);
+                            .style("fill", function (d,i) {
+                                return COLORS[teamsFT[i]];
                             });
 
                         g.append("text")
