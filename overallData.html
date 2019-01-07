@@ -405,15 +405,6 @@
                                 return 1
                             });
 
-                        if(stat !== "goal_diff") {
-                            console.log("ye");
-                            svg.selectAll("rect")
-                                .data(teamsFT)
-                                .style("fill", function(d) {
-                                return COLORS[d];
-                            });
-                        }
-
                         var yAxis = d3.axisLeft(yAxisScale);
 
                         svg.append('g')

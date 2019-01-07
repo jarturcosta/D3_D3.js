@@ -6,10 +6,35 @@
     <script type="text/javascript" src="http://d3js.org/d3.v5.js"></script>
     <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
     <link rel="stylesheet" type="text/css" href="graphs.css">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="bootstrap.min.css">
 </head>
 <body>
-<input type="date" id="date" onchange="drawTable()">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <img width="30px" height="30px" src="bpl-picture.png"></img>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarColor01"
+            aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarColor01">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item">
+                <a class="nav-link" href="dataBySeason.html">Stats by Season<span class="sr-only">(current)</span></a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="overallData.html">Overrall Data</a>
+            </li>
+            <li class="nav-item  active">
+                <a class="nav-link" href="historicalTable.html">Historical Table</a>
+            </li>
+        </ul>
+    </div>
+</nav>
+<div class="" align="left" style="padding: 5px">
+    <span class="label">Date:</span>
+    <input class="date" type="date" id="date" onchange="drawTable()">
+</div>
+
 <table id="table" class="table" align="center">
     <thead>
     <tr>
