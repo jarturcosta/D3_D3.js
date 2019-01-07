@@ -22,7 +22,7 @@ function statsBySeasonByTeam(dataset) {
     for(var s=0; s < seasonKeys.length; s++) {
         dataBySeason[seasonKeys[s]] = {};
         for(var t=0; t < teamKeys.length; t++) {
-            dataBySeason[seasonKeys[s]][teamKeys[t]] = {points: 0, goalsScored: 0, goalsConceded: 0, goalDifference: 0, position:0}
+            dataBySeason[seasonKeys[s]][teamKeys[t]] = {points: 0, goalsScored: 0, goalsConceded: 0, goalDifference: 0, position:0, wins:0, losses:0, draws:0}
         };
     };
     for(var i=0; i < dataset.length; i++) {
@@ -34,11 +34,17 @@ function statsBySeasonByTeam(dataset) {
         dataBySeason[dataset[i].season][dataset[i].awayTeam].goalDifference += parseInt(dataset[i].fullTimeAwayGoals) - parseInt(dataset[i].fullTimeHomeGoals)
         if (dataset[i].fullTimeResult == "H"){
             dataBySeason[dataset[i].season][dataset[i].homeTeam].points += 3
+            dataBySeason[dataset[i].season][dataset[i].homeTeam].wins += 1
+            dataBySeason[dataset[i].season][dataset[i].awayTeam].losses += 1
         } else if (dataset[i].fullTimeResult == "A"){
             dataBySeason[dataset[i].season][dataset[i].awayTeam].points += 3
+            dataBySeason[dataset[i].season][dataset[i].awayTeam].wins += 1
+            dataBySeason[dataset[i].season][dataset[i].homeTeam].losses += 1
         } else {
             dataBySeason[dataset[i].season][dataset[i].homeTeam].points += 1
             dataBySeason[dataset[i].season][dataset[i].awayTeam].points += 1
+            dataBySeason[dataset[i].season][dataset[i].awayTeam].draws += 1
+            dataBySeason[dataset[i].season][dataset[i].homeTeam].draws += 1
         }
     };
 

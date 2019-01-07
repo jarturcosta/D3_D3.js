@@ -3,13 +3,17 @@ var statName = {
     "points": "Points",
     "goalsScored": "Goals Scored",
     "goalsConceded": "Goals Conceded",
-    "goalDifference": "Goal Difference"
+    "goalDifference": "Goal Difference",
+    "wins": "Games Won",
+    "losses": "Games Lost",
+    "draws": "Games Drawn",
 }
 var margin = {top: 50, right: 50, bottom: 50, left: 50},
     width = 0.7 * window.innerWidth - margin.left - margin.right,
     height =  0.8 * window.innerHeight - margin.top - margin.bottom;
 var n = 26
 var xScale, yScale;
+var start_year =1994, end_year=2018;
 
 function renderScale() {
     var maxY = -100;
@@ -24,18 +28,18 @@ function renderScale() {
             }
         }
     }
-    console.log(statSelect.value)
+
     if(statSelect.value != "position") {
         yScale = d3.scaleLinear()
             .domain([minY - 5, maxY + 5]) // input
             .range([height, 0]); // output
     } else {
         yScale = d3.scaleLinear()
-            .domain([maxY + 1, 0]) // input
+            .domain([23, 0]) // input
             .range([height, 0]); // output
     }
     xScale = d3.scaleLinear()
-        .domain([0, n - 1]) // input
+        .domain([start_year-1, end_year+2]) // input
         .range([0, width]); // output
 
 
@@ -49,6 +53,7 @@ var svg = d3.select("svg")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
 function drawGraph(dataset, data) {
+    console.log(xScale)
     margin = {top: 50, right: 50, bottom: 50+Math.floor(Array.from(selectedTeams).length/8)*20, left: 50};
     console.log(margin)
     renderScale();
@@ -99,9 +104,9 @@ function drawGraph(dataset, data) {
 function drawLine(dataset, data, team, stat) {
     var g = svg.append("g").attr("id", team.replace(/\s+/g, '')).attr("style", "stroke: " + COLORS[team] + "; fill: " + COLORS[team] + ";");
     var line = d3.line()
-        .defined(function(d) { return d.y!= null; })
+        .defined(function(d, i) { return d.y!= null && i+1994 >= start_year && i+1994 <= end_year;})
         .x(function (d, i) {
-            return xScale(i);
+            return xScale(i+1994);
         }) // set the x values for the line generator
         .y(function (d) {
             return yScale(d.y);
@@ -130,14 +135,15 @@ function drawLine(dataset, data, team, stat) {
         .attr("class", "dot") // Assign a class for styling
         .attr("style", "fill: " + COLORS[team] + ";")
         .attr("cx", function (d, i) {
-            return xScale(i)
+            return xScale(i+1994)
         })
         .attr("cy", function (d) {
             return yScale(d.y)
         })
         .attr("r", 5)
-        .attr("display", function(d) {
-            return d.y == null ? "none": "inline";
+        .attr("display", function(d,i) {
+
+            return d.y == null || i+1994 < start_year || i+1994 > end_year ? "none": "inline";
         })
         .on("mouseover", function (a, b, c) {
             c[b].classList.remove('dot')
