@@ -18,21 +18,28 @@
     <option value="goalsScored">Goals Scored</option>
     <option value="goalsConceded">Goals Conceded</option>
     <option value="goalDifference">Goal Difference</option>
+    <option value="wins">Games Won</option>
+    <option value="losses">Games Lost</option>
+    <option value="draws">Games Drawn</option>
 </select>
 <button onclick="toggleAll()">Add all teams</button>
 <button onclick="toggleNone()">Remove all teams</button>
 <input type="text" id="filter" name="search" onchange="filter()">
 <button onclick="clearFilter()">Clear search</button>
-<div class="row" style="">
+<div  style="">
     <svg class="col-md-8"></svg>
-    <div class="col-md-3" id="teamCheckbox" type="checkbox" style="height:475px;overflow-y: scroll;margin-top: 50px;">
+    <div class="col-md-2" id="teamCheckbox" type="checkbox" style="height:475px;overflow-y: scroll;margin-top: 50px;margin-left: 50px;">
     </div>
 </div>
-<script type="text/javascript" src="d3-legend.js"></script>
+<div align="center">
+    <div><div id="slider-range"></div></div>
+</div>
+<script type="text/javascript" src="d3-simple-slider.js"></script>
 <script type="text/javascript" src="colors.js"></script>
 <script type="text/javascript" src="data.js"></script>
 <script type="text/javascript" src="d3-tip.js"></script>
 <script type="text/javascript" src="graphs.js"></script>
+<script type="text/javascript" src="slider-range.js"></script>
 <script type="text/javascript">
     var dataset;
     var teams;
